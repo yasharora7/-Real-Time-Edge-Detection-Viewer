@@ -1,34 +1,22 @@
 #include <jni.h>
 #include <vector>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/opencv.hpp>
+#include "edge_processor.h"
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_com_example_edgeviewer_NativeEdge_processFrame(
-        JNIEnv *env,
-        jobject /* this */,
-        jbyteArray frameData,
-        jint width,
-        jint height
-) {
+        JNIEnv *env, jobject thiz,
+        jbyteArray frame, jint w, jint h) {
 
-    jsize length = env->GetArrayLength(frameData);
-    std::vector<unsigned char> yData(length);
-    env->GetByteArrayRegion(frameData, 0, length, reinterpret_cast<jbyte*>(yData.data()));
+    jsize len = env->GetArrayLength(frame);
 
-    cv::Mat gray(height, width, CV_8UC1, yData.data());
+    std::vector<unsigned char> in(len);
+    env->GetByteArrayRegion(frame, 0, len, reinterpret_cast<jbyte*>(in.data()));
 
-    cv::Mat edges;
-    cv::Canny(gray, edges, 80, 160);
+    std::vector<unsigned char> out = edge_process_frame(in, w, h);
 
-    jbyteArray result = env->NewByteArray(width * height);
-    env->SetByteArrayRegion(
-            result,
-            0,
-            width * height,
-            reinterpret_cast<const jbyte*>(edges.data)
-    );
+    jbyteArray result = env->NewByteArray(out.size());
+    env->SetByteArrayRegion(result, 0, out.size(), reinterpret_cast<jbyte*>(out.data()));
 
     return result;
 }

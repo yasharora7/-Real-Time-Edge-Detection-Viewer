@@ -1,73 +1,51 @@
 package com.example.edgeviewer
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.content.pm.PackageManager
+import android.content.res.Configuration
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var glView: GLView
-    private var cameraController: CameraController? = null
+    private lateinit var camera: CameraController
+    private lateinit var gl: GLSurface
 
-    private val permissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) startCamera()
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+            if (it) startCamera()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        glView = GLView(this)
-        setContentView(glView)
+        setContentView(R.layout.activity_main)
+        gl = findViewById(R.id.glSurface)
 
-        checkAndRequestPermission()
+        camera = CameraController(this) { bytes, w, h ->
+            val edges = NativeEdge.processFrame(bytes, w, h)
+            gl.update(edges, w, h)
+        }
+
+        requestPermission()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (hasPermission()) startCamera()
-        glView.onResume()
+    private fun requestPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            startCamera()
+        } else {
+            launcher.launch(Manifest.permission.CAMERA)
+        }
     }
 
-    override fun onPause() {
-        super.onPause()
-        cameraController?.stop()
-        glView.onPause()
+    private fun startCamera() = camera.start()
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        gl.requestLayout() // prevents rotated black screen
     }
-
-    private fun hasPermission() =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED
-
-    private fun checkAndRequestPermission() {
-        if (!hasPermission()) permissionLauncher.launch(Manifest.permission.CAMERA)
-    }
-
-    private fun startCamera() {
-        cameraController = CameraController(
-            ctx = this,
-            onFrame = { yBytes ->
-                val processed = NativeEdge.processFrame(
-                    input = yBytes,
-                    width = 640,
-                    height = 480
-                )
-
-                glView.renderer.updateFrame(
-                    bytes = processed,
-                    width = 640,
-                    height = 480
-                )
-
-                glView.requestRender()
-            }
-        )
-        cameraController!!.start()
-    }
-
 }
-
-
