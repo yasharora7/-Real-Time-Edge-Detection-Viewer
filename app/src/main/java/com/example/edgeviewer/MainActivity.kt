@@ -3,9 +3,9 @@ package com.example.edgeviewer
 import android.Manifest
 import android.os.Bundle
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.view.Surface
 import android.widget.Button
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -15,8 +15,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var camera: CameraController
     private lateinit var gl: GLSurface
     private lateinit var btnMode: Button
+    private lateinit var tvFps: TextView
 
-    private var showEdges = false   // default RAW
+    private var showEdges = false
+    private var lastTime = System.nanoTime()
+    private var fpsSmoothed = 0f
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -30,8 +33,9 @@ class MainActivity : AppCompatActivity() {
 
         gl = findViewById(R.id.glSurface)
         btnMode = findViewById(R.id.btnMode)
+        tvFps = findViewById(R.id.tvFps)
 
-        // toggle logic
+        // Toggle between RAW and EDGE
         btnMode.setOnClickListener {
             showEdges = !showEdges
             btnMode.text = if (showEdges) "EDGE" else "RAW"
@@ -39,14 +43,22 @@ class MainActivity : AppCompatActivity() {
 
         camera = CameraController(this) { bytes, w, h ->
 
-            // choose output
-            val output = if (showEdges) {
-                NativeEdge.processFrame(bytes, w, h)    // EDGE
-            } else {
-                bytes                                   // RAW
+            // ---- FPS ----
+            val now = System.nanoTime()
+            val fps = 1_000_000_000f / (now - lastTime)
+            lastTime = now
+            fpsSmoothed = fpsSmoothed * 0.9f + fps * 0.1f
+
+            runOnUiThread {
+                tvFps.text = "FPS: ${"%.1f".format(fpsSmoothed)}"
             }
 
-            // rotation logic unchanged
+            // RAW / EDGE toggle
+            val output =
+                if (showEdges) NativeEdge.processFrame(bytes, w, h)
+                else bytes
+
+            // Orientation
             val rotation = when (windowManager.defaultDisplay.rotation) {
                 Surface.ROTATION_0 -> 90
                 Surface.ROTATION_90 -> 0
@@ -64,17 +76,9 @@ class MainActivity : AppCompatActivity() {
     private fun requestPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED
-        ) {
-            startCamera()
-        } else {
-            launcher.launch(Manifest.permission.CAMERA)
-        }
+        ) startCamera()
+        else launcher.launch(Manifest.permission.CAMERA)
     }
 
     private fun startCamera() = camera.start()
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        gl.requestLayout()
-    }
 }

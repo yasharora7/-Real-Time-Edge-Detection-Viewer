@@ -5,20 +5,36 @@
     android:layout_height="match_parent"
     android:background="#000">
 
+    <!-- Your full-screen GL view -->
     <com.example.edgeviewer.GLSurface
         android:id="@+id/glSurface"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Toggle Button -->
-    <Button
-        android:id="@+id/btnMode"
-        android:layout_width="120dp"
-        android:layout_height="45dp"
-        android:text="RAW"
-        android:background="#66000000"
-        android:textColor="#ffffff"
-        android:layout_margin="16dp"
-        android:layout_gravity="bottom|end" />
+    <!-- Overlay UI: top-left -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:layout_margin="12dp"
+        android:background="@android:color/transparent"
+        android:layout_gravity="bottom|end">
+
+        <Button
+            android:id="@+id/btnMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RAW" />
+
+        <TextView
+            android:id="@+id/tvFps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="FPS: 0.0"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
 
 </FrameLayout>
