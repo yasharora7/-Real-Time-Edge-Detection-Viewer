@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000"
-    android:orientation="horizontal">
+    android:background="#000">
 
     <com.example.edgeviewer.GLSurface
         android:id="@+id/glSurface"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <!-- Toggle Button -->
+    <Button
+        android:id="@+id/btnMode"
+        android:layout_width="120dp"
+        android:layout_height="45dp"
+        android:text="RAW"
+        android:background="#66000000"
+        android:textColor="#ffffff"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom|end" />
 
 </FrameLayout>
