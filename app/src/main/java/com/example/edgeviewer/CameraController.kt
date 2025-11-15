@@ -100,7 +100,6 @@ class CameraController(
     }
 
 
-
     fun stop() {
         session?.close()
         cameraDevice?.close()

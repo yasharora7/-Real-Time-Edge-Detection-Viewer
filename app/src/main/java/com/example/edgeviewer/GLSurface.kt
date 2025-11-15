@@ -9,16 +9,17 @@ class GLSurface @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : GLSurfaceView(ctx, attrs) {
 
-    private val renderer = GLRenderer()
+    // expose renderer publicly
+    val rendererPublic = GLRenderer()
 
     init {
         setEGLContextClientVersion(2)
-        setRenderer(renderer)
+        setRenderer(rendererPublic)
         renderMode = RENDERMODE_WHEN_DIRTY
     }
 
     fun update(bytes: ByteArray, w: Int, h: Int, rotation: Int) {
-        renderer.updateFrame(bytes, w, h, rotation)
+        rendererPublic.updateFrame(bytes, w, h, rotation)
         requestRender()
     }
 }

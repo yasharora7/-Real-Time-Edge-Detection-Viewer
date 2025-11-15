@@ -1,5 +1,6 @@
 package com.example.edgeviewer
 
+import android.graphics.Bitmap
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import java.nio.ByteBuffer
@@ -9,6 +10,14 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 class GLRenderer : GLSurfaceView.Renderer {
+    // public-ish helpers
+    var lastFrame: ByteArray? = null
+
+    val width: Int
+        get() = frameW
+
+    val height: Int
+        get() = frameH
 
     private var textureId = 0
     private var frame: ByteBuffer? = null
@@ -35,7 +44,7 @@ class GLRenderer : GLSurfaceView.Renderer {
         0f, 0f    // top-left     → becomes bottom-left
     )
 
-// --- ROTATION TEX COORDS ---
+    // --- ROTATION TEX COORDS ---
 
     // No rotation
     private val TEX_0 = floatArrayOf(
@@ -68,7 +77,6 @@ class GLRenderer : GLSurfaceView.Renderer {
         1f, 0f,
         1f, 1f
     )
-
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         textureId = GLUtils.createTexture()
@@ -112,16 +120,23 @@ class GLRenderer : GLSurfaceView.Renderer {
         GLUtils.draw(textureId, vBuf, tBuf)
     }
 
+    /**
+     * Called from UI/camera thread to push a new frame.
+     * bytes = single-channel Y (width*height) bytes.
+     * rotation = one of {0,90,180,270}.
+     */
     fun updateFrame(bytes: ByteArray, w: Int, h: Int, rotation: Int) {
         synchronized(lock) {
             frameW = w
             frameH = h
-
+            // keep a copy available publicly
+            lastFrame = bytes.copyOf()
+            // allocate direct buffer for GL upload
             frame = ByteBuffer.allocateDirect(bytes.size)
             frame!!.put(bytes)
             frame!!.position(0)
 
-            // SELECT UV ROTATION
+            // SELECT UV ROTATION -> update texture coords buffer
             val selected = when (rotation) {
                 0 -> TEX_0
                 90 -> TEX_90
@@ -134,6 +149,35 @@ class GLRenderer : GLSurfaceView.Renderer {
         }
     }
 
+    /**
+     * Produce an ARGB_8888 Bitmap from the last uploaded (single-channel) frame.
+     * Safe: does not modify the buffer used by GL because it duplicates it.
+     */
+    fun getLastFrameBitmap(): Bitmap? {
+        // quick guards
+        if (frameW <= 0 || frameH <= 0) return null
+        val fb = synchronized(lock) { frame ?: return null }
+
+        // Duplicate to avoid changing the GL buffer's position
+        val dup = fb.duplicate()
+        dup.position(0)
+
+        val buffer = ByteArray(frameW * frameH)
+        dup.get(buffer)
+
+        val bmp = Bitmap.createBitmap(frameW, frameH, Bitmap.Config.ARGB_8888)
+
+        var idx = 0
+        for (y in 0 until frameH) {
+            for (x in 0 until frameW) {
+                val v = buffer[idx].toInt() and 0xFF
+                val color = (0xFF shl 24) or (v shl 16) or (v shl 8) or v
+                bmp.setPixel(x, y, color)
+                idx++
+            }
+        }
+        return bmp
+    }
 
     private fun toBuf(arr: FloatArray): FloatBuffer =
         ByteBuffer.allocateDirect(arr.size * 4)
