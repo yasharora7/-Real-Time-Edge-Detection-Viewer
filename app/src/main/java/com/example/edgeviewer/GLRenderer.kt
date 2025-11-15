@@ -35,6 +35,39 @@ class GLRenderer : GLSurfaceView.Renderer {
         0f, 0f    // top-left     → becomes bottom-left
     )
 
+// --- ROTATION TEX COORDS ---
+
+    // No rotation
+    private val TEX_0 = floatArrayOf(
+        0f, 1f,
+        1f, 1f,
+        0f, 0f,
+        1f, 0f
+    )
+
+    // 90° rotation
+    private val TEX_90 = floatArrayOf(
+        1f, 1f,
+        1f, 0f,
+        0f, 1f,
+        0f, 0f
+    )
+
+    // 180° rotation
+    private val TEX_180 = floatArrayOf(
+        1f, 0f,
+        0f, 0f,
+        1f, 1f,
+        0f, 1f
+    )
+
+    // 270° rotation
+    private val TEX_270 = floatArrayOf(
+        0f, 0f,
+        0f, 1f,
+        1f, 0f,
+        1f, 1f
+    )
 
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -79,21 +112,28 @@ class GLRenderer : GLSurfaceView.Renderer {
         GLUtils.draw(textureId, vBuf, tBuf)
     }
 
-    fun updateFrame(bytes: ByteArray, w: Int, h: Int) {
+    fun updateFrame(bytes: ByteArray, w: Int, h: Int, rotation: Int) {
         synchronized(lock) {
             frameW = w
             frameH = h
 
-            if (frame == null || frame!!.capacity() != bytes.size) {
-                frame = ByteBuffer.allocateDirect(bytes.size)
-                    .order(ByteOrder.nativeOrder())
-            }
-
-            frame!!.clear()
+            frame = ByteBuffer.allocateDirect(bytes.size)
             frame!!.put(bytes)
             frame!!.position(0)
+
+            // SELECT UV ROTATION
+            val selected = when (rotation) {
+                0 -> TEX_0
+                90 -> TEX_90
+                180 -> TEX_180
+                270 -> TEX_270
+                else -> TEX_0
+            }
+
+            tBuf = toBuf(selected)
         }
     }
+
 
     private fun toBuf(arr: FloatArray): FloatBuffer =
         ByteBuffer.allocateDirect(arr.size * 4)

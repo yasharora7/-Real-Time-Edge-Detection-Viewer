@@ -17,8 +17,8 @@ class GLSurface @JvmOverloads constructor(
         renderMode = RENDERMODE_WHEN_DIRTY
     }
 
-    fun update(bytes: ByteArray, w: Int, h: Int) {
-        renderer.updateFrame(bytes, w, h)
+    fun update(bytes: ByteArray, w: Int, h: Int, rotation: Int) {
+        renderer.updateFrame(bytes, w, h, rotation)
         requestRender()
     }
 }
