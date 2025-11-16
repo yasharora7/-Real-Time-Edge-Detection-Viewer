@@ -32,22 +32,21 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // MUST BE FIRST
         setContentView(R.layout.activity_main)
 
-        // NOW views exist
         gl = findViewById(R.id.glSurface)
         btnMode = findViewById(R.id.btnMode)
         btnCapture = findViewById(R.id.btnCapture)
         tvFps = findViewById(R.id.tvFps)
+        val tvProcess: TextView = findViewById(R.id.tvProcess)
 
-        // Mode toggle
+        // Toggle RAW/EDGE
         btnMode.setOnClickListener {
             showEdges = !showEdges
             btnMode.text = if (showEdges) "EDGE" else "RAW"
         }
 
-        // Capture button
+        // Capture image button
         btnCapture.setOnClickListener {
             val bmp = gl.rendererPublic.getLastFrameBitmap()
             if (bmp == null) {
@@ -62,27 +61,37 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Failed to save!", Toast.LENGTH_SHORT).show()
         }
 
-
         // Camera callback
         camera = CameraController(this) { bytes, w, h ->
 
-            // FPS calc
+            // ---------- FPS ----------
             val now = System.nanoTime()
-            val fps = 1_000_000_000f / (now - lastTime)
+            val frameTimeNs = now - lastTime
             lastTime = now
+
+            val fps = 1_000_000_000f / frameTimeNs
             fpsSmoothed = fpsSmoothed * 0.9f + fps * 0.1f
 
-            runOnUiThread {
-                tvFps.text = "FPS: %.1f".format(fpsSmoothed)
-            }
+            // ---------- PROCESS TIME (ms) ----------
+            val processingStart = System.nanoTime()
 
-            // Process RAW or EDGE
             val output = if (showEdges)
                 NativeEdge.processFrame(bytes, w, h)
             else
                 bytes
 
-            // Orientation
+            val processingMs =
+                (System.nanoTime() - processingStart) / 1_000_000f
+
+            android.util.Log.d("FrameTime", "Processing = ${"%.3f".format(processingMs)} ms")
+
+            // ---------- UPDATE UI ----------
+            runOnUiThread {
+                tvFps.text = "FPS: %.1f".format(fpsSmoothed)
+                tvProcess.text = "PROC: %.2f ms".format(processingMs)
+            }
+
+            // ---------- ROTATION ----------
             val rotation = when (windowManager.defaultDisplay.rotation) {
                 Surface.ROTATION_0 -> 90
                 Surface.ROTATION_90 -> 0
@@ -91,13 +100,11 @@ class MainActivity : AppCompatActivity() {
                 else -> 90
             }
 
-            // Update GL view
             gl.update(output, w, h, rotation)
         }
 
         requestPermission()
     }
-
 
     private fun requestPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
