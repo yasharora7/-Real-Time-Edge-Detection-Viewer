@@ -16,8 +16,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var camera: CameraController
     private lateinit var gl: GLSurface
 
-    private lateinit var btnMode: Button
-    private lateinit var btnCapture: Button
+    private lateinit var btnMode: TextView
+    private lateinit var btnCapture: TextView
+
     private lateinit var tvFps: TextView
 
     private var showEdges = false

@@ -3,52 +3,72 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000">
+    android:background="#000"
+    android:fitsSystemWindows="true">
 
-    <!-- Your full-screen GL view -->
+    <!-- Fullscreen OpenGL View -->
     <com.example.edgeviewer.GLSurface
         android:id="@+id/glSurface"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Overlay UI: top-left -->
+    <!-- TOP LEFT: FPS + PROCESS TIME -->
     <LinearLayout
+        android:id="@+id/hudTop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:layout_margin="12dp"
-        android:background="@android:color/transparent"
-        android:layout_gravity="bottom|end">
-
-        <Button
-            android:id="@+id/btnMode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="RAW" />
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:layout_gravity="top|start">
 
         <TextView
             android:id="@+id/tvFps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
             android:text="FPS: 0.0"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
-        <Button
-            android:id="@+id/btnCapture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="CAPTURE" />
+            android:textSize="16sp" />
+
         <TextView
             android:id="@+id/tvProcess"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
             android:text="PROC: 0 ms"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!-- BOTTOM CENTER BUTTONS -->
+    <LinearLayout
+        android:id="@+id/hudBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        android:padding="22dp">
+
+        <TextView
+            android:id="@+id/btnMode"
+            android:layout_width="120dp"
+            android:layout_height="45dp"
+            android:gravity="center"
+            android:text="RAW"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:background="@drawable/rounded_btn"
+            android:layout_marginEnd="20dp" />
+
+        <TextView
+            android:id="@+id/btnCapture"
+            android:layout_width="120dp"
+            android:layout_height="45dp"
+            android:gravity="center"
+            android:text="CAPTURE"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:background="@drawable/rounded_btn" />
 
     </LinearLayout>
 
