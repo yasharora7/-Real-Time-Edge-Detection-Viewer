@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
-    "outDir": "./",
-    "target": "es6"
-  }
+    "target": "ES2019",
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "lib": ["DOM", "ES2019"]
+  },
+  "include": ["src/**/*"]
 }

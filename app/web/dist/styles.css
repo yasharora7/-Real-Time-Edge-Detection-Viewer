@@ -1,0 +1,29 @@
+:root{
+  --bg:#0b0f14;
+  --panel:#0f1720;
+  --muted:#9aa5b1;
+  --accent:#7dd3fc;
+}
+
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto, "Helvetica Neue", Arial;}
+body{background:linear-gradient(180deg,var(--bg),#071018); color: #e6eef6; display:flex; align-items:flex-start; justify-content:center; padding:28px;}
+#app{width:760px; max-width:100%}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:16px;margin:0;color:var(--accent)}
+.controls{display:flex;gap:8px;align-items:center}
+button{background:var(--accent);border:none;padding:6px 10px;border-radius:8px;color:#042028;cursor:pointer}
+button:hover{opacity:0.9}
+main{background:var(--panel);padding:12px;border-radius:12px;display:flex;justify-content:center;align-items:center}
+canvas{display:block;max-width:100%;height:auto;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+#fallback{position:relative;margin-top:8px;color:var(--muted);font-size:13px;text-align:center}
+.overlay-text{
+  position:absolute;
+  left:18px;
+  top:18px;
+  font-family:monospace;
+  font-size:14px;
+  color:#fff;
+  text-shadow:0 1px 4px rgba(0,0,0,0.7);
+  pointer-events:none;
+}
+footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}

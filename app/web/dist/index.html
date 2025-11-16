@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Edge Viewer — Sample</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+    <header>
+        <h1>Edge Viewer — Sample Frame</h1>
+        <div class="controls">
+            <button id="btnSave">Save Frame</button>
+            <label><input id="chkOverlay" type="checkbox" checked /> Show stats</label>
+        </div>
+    </header>
+
+    <main>
+        <canvas id="canvas" width="640" height="480"></canvas>
+        <div id="fallback">Loading sample frame…</div>
+    </main>
+
+    <footer>
+        <small>Drop a `sample-frame.jpg` into the same folder as this page to use a real processed frame.</small>
+    </footer>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

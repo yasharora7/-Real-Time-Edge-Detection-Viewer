@@ -1,0 +1,14 @@
+{
+  "name": "web-viewer-ts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "npm run build && npx http-server ./dist -c-1 -p 5173",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "typescript": "^5.0.0"
+  }
+}
