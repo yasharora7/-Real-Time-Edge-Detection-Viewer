@@ -6,19 +6,21 @@
     android:background="#000"
     android:fitsSystemWindows="true">
 
-    <!-- Fullscreen OpenGL View -->
+    <!-- Full Screen GLSurface -->
     <com.example.edgeviewer.GLSurface
         android:id="@+id/glSurface"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- TOP LEFT: FPS + PROCESS TIME -->
+    <!-- Top HUD: Glass Blur Panel -->
     <LinearLayout
         android:id="@+id/hudTop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="12dp"
+        android:background="@drawable/glass_bg"
+        android:layout_margin="16dp"
         android:layout_gravity="top|start">
 
         <TextView
@@ -39,37 +41,38 @@
 
     </LinearLayout>
 
-    <!-- BOTTOM CENTER BUTTONS -->
+    <!-- Bottom Controls -->
     <LinearLayout
         android:id="@+id/hudBottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:padding="18dp"
         android:gravity="center"
         android:layout_gravity="bottom"
-        android:padding="22dp">
+        android:orientation="horizontal">
 
+        <!-- RAW / EDGE Toggle -->
         <TextView
             android:id="@+id/btnMode"
-            android:layout_width="120dp"
-            android:layout_height="45dp"
+            android:layout_width="140dp"
+            android:layout_height="48dp"
             android:gravity="center"
             android:text="RAW"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:background="@drawable/rounded_btn"
+            android:textSize="17sp"
+            android:background="@drawable/btn_modern"
             android:layout_marginEnd="20dp" />
 
+        <!-- Capture Button -->
         <TextView
             android:id="@+id/btnCapture"
-            android:layout_width="120dp"
-            android:layout_height="45dp"
+            android:layout_width="140dp"
+            android:layout_height="48dp"
             android:gravity="center"
             android:text="CAPTURE"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:background="@drawable/rounded_btn" />
-
+            android:textSize="17sp"
+            android:background="@drawable/btn_primary" />
     </LinearLayout>
 
 </FrameLayout>
