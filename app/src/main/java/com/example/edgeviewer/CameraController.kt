@@ -3,12 +3,10 @@ package com.example.edgeviewer
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.ImageFormat
-import android.media.Image
 import android.media.ImageReader
 import android.hardware.camera2.*
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Size
 
 class CameraController(
     private val ctx: Context,
@@ -19,37 +17,57 @@ class CameraController(
     private var session: CameraCaptureSession? = null
     private var imageReader: ImageReader? = null
 
-    private val thread = HandlerThread("CamThread").apply { start() }
-    private val handler = Handler(thread.looper)
+    private var thread: HandlerThread? = HandlerThread("CamThread").apply { start() }
+    private var handler: Handler? = thread?.let { Handler(it.looper) }
+
+    @Volatile
+    var isRunning = false
+        private set
 
     private val camManager by lazy {
         ctx.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     }
 
     @SuppressLint("MissingPermission")
+    @Synchronized
     fun start() {
-        val cameraId = camManager.cameraIdList.first()
+        if (isRunning) return
 
-        // Prepare Y-only reader
-        imageReader = ImageReader.newInstance(
-            640, 480, ImageFormat.YUV_420_888, 2
-        )
-        imageReader!!.setOnImageAvailableListener(::onImageAvailable, handler)
+        if (thread == null || thread?.isAlive == false) {
+            thread = HandlerThread("CamThread").apply { start() }
+            handler = Handler(thread!!.looper)
+        }
 
-        camManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
-            override fun onOpened(dev: CameraDevice) {
-                cameraDevice = dev
-                createSession()
-            }
+        try {
+            val cameraId = camManager.cameraIdList.first()
 
-            override fun onDisconnected(dev: CameraDevice) {
-                dev.close()
-            }
+            imageReader = ImageReader.newInstance(
+                640, 480, ImageFormat.YUV_420_888, 2
+            )
+            imageReader!!.setOnImageAvailableListener(::onImageAvailable, handler)
 
-            override fun onError(dev: CameraDevice, err: Int) {
-                dev.close()
-            }
-        }, handler)
+            camManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
+                override fun onOpened(dev: CameraDevice) {
+                    cameraDevice = dev
+                    createSession()
+                    isRunning = true
+                }
+
+                override fun onDisconnected(dev: CameraDevice) {
+                    dev.close()
+                    isRunning = false
+                }
+
+                override fun onError(dev: CameraDevice, err: Int) {
+                    dev.close()
+                    isRunning = false
+                }
+            }, handler)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            isRunning = false
+        }
     }
 
     private fun createSession() {
@@ -59,13 +77,16 @@ class CameraController(
         val request = device.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         request.addTarget(surface)
 
-        // ✔ Compatible with SDK 24–34
         device.createCaptureSession(
             listOf(surface),
             object : CameraCaptureSession.StateCallback() {
                 override fun onConfigured(s: CameraCaptureSession) {
                     session = s
-                    s.setRepeatingRequest(request.build(), null, handler)
+                    try {
+                        s.setRepeatingRequest(request.build(), null, handler)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
 
                 override fun onConfigureFailed(s: CameraCaptureSession) {}
@@ -100,10 +121,33 @@ class CameraController(
     }
 
 
+    @Synchronized
     fun stop() {
-        session?.close()
-        cameraDevice?.close()
-        imageReader?.close()
-        thread.quitSafely()
+        try {
+            session?.close()
+            session = null
+
+            cameraDevice?.close()
+            cameraDevice = null
+
+            imageReader?.close()
+            imageReader = null
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        isRunning = false
+    }
+
+    @Synchronized
+    fun release() {
+        stop()
+        try {
+            thread?.quitSafely()
+            thread = null
+            handler = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

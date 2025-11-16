@@ -30,18 +30,20 @@ class MainActivity : AppCompatActivity() {
     private var fpsSmoothed = 0f
 
     private var lastInteraction = System.currentTimeMillis()
+    private var permissionGranted = false
 
     private val launcher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (it) startCamera()
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            permissionGranted = granted
+            if (!granted) {
+                Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show()
+            }
         }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Views
         gl = findViewById(R.id.glSurface)
         btnMode = findViewById(R.id.btnMode)
         btnCapture = findViewById(R.id.btnCapture)
@@ -51,39 +53,12 @@ class MainActivity : AppCompatActivity() {
         hudTop = findViewById(R.id.hudTop)
         hudBottom = findViewById(R.id.hudBottom)
 
-        // --- UI auto-hide loop ---
         startHUDHideLoop()
 
-        // Mode toggle
-        btnMode.setOnClickListener {
-            showEdges = !showEdges
-            btnMode.text = if (showEdges) "EDGE" else "RAW"
-            updateUserInteraction()
-        }
-
-
-        // Capture
-        btnCapture.setOnClickListener {
-
-            val bmp = gl.rendererPublic.getLastFrameBitmap()
-            if (bmp == null) {
-                Toast.makeText(this, "No frame yet!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val uri = ImageSaver.saveToGallery(this, bmp)
-            if (uri != null)
-                Toast.makeText(this, "Saved to Gallery!", Toast.LENGTH_SHORT).show()
-            else
-                Toast.makeText(this, "Failed to save!", Toast.LENGTH_SHORT).show()
-
-            updateUserInteraction()
-        }
-
-        // Camera callback
+        // CameraController with callback
         camera = CameraController(this) { bytes, w, h ->
 
-            // FPS
+            // FPS calculation
             val now = System.nanoTime()
             val fps = 1_000_000_000f / (now - lastTime)
             lastTime = now
@@ -108,16 +83,59 @@ class MainActivity : AppCompatActivity() {
                 else -> 90
             }
 
-            gl.update(output, w, h, rotation)
+            runOnUiThread {
+                gl.update(output, w, h, rotation)
+            }
         }
 
+        // Mode button
+        btnMode.setOnClickListener {
+            showEdges = !showEdges
+            btnMode.text = if (showEdges) "EDGE" else "RAW"
+            updateUserInteraction()
+        }
+
+        // Capture
+        btnCapture.setOnClickListener {
+            val bmp = gl.rendererPublic.getLastFrameBitmap()
+            if (bmp == null) {
+                Toast.makeText(this, "No frame yet!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val uri = ImageSaver.saveToGallery(this, bmp)
+            Toast.makeText(this, if (uri != null) "Saved!" else "Failed!", Toast.LENGTH_SHORT).show()
+            updateUserInteraction()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
         requestPermission()
     }
 
+    override fun onResume() {
+        super.onResume()
+        gl.onResume()
+        if (permissionGranted && !camera.isRunning) {
+            camera.start()
+        }
+    }
 
-    // ----------------------
-    // HUD AUTO HIDE SYSTEM
-    // ----------------------
+    override fun onPause() {
+        camera.stop()
+        gl.onPause()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        camera.release()
+        super.onDestroy()
+    }
+
+    // ============================================================================================
+    // HUD AUTO HIDE
+    // ============================================================================================
+
     @SuppressLint("ClickableViewAccessibility")
     private fun startHUDHideLoop() {
         val handler = android.os.Handler()
@@ -144,17 +162,13 @@ class MainActivity : AppCompatActivity() {
         hudBottom.animate().alpha(1f).setDuration(150).start()
     }
 
-
-
-    // ----------------------
-    // CAMERA PERMISSION
-    // ----------------------
     private fun requestPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED
-        ) startCamera()
-        else launcher.launch(Manifest.permission.CAMERA)
+        ) {
+            permissionGranted = true
+        } else {
+            launcher.launch(Manifest.permission.CAMERA)
+        }
     }
-
-    private fun startCamera() = camera.start()
 }
