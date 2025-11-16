@@ -31,9 +31,9 @@ High-performance edge detection using Camera2 + JNI + OpenGL ES + TypeScript Web
 
 
 ```
-assets/screenshots/raw_mode.jpg
-assets/screenshots/edge_mode.jpg
-assets/screenshots/web_viewer.png
+app/assets/screenshots/raw_mode.jpg
+app/assets/screenshots/edge_mode.jpg
+app/assets/screenshots/web_viewer.png
 ```
 
 ---
@@ -101,7 +101,7 @@ flowchart LR
     D --> E[Phone Screen]
 
     C --> F[sample-frame.jpg]
-    F --> G[Web Viewer (TS + Canvas)]
+    F --> G["Web Viewer (TS + Canvas)"]
     G --> H[Overlay + Save PNG]
 ```
 
@@ -109,7 +109,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[Camera2] --> B[ImageReader]
-    B --> C[Byte[] Y]
+    B --> C[Byte&#91;&#93; Y]
     C --> D[C++ Sobel Edge Detection]
     D --> E[ByteBuffer Edges]
     E --> F[GLRenderer → GL_LUMINANCE]
