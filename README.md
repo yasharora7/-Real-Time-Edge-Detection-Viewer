@@ -9,7 +9,7 @@ High-performance edge detection using Camera2 + JNI + OpenGL ES + TypeScript Web
 
 ## 📱 Android Application
 - Real-time Camera2 preview (Y-plane only)
-- Native C++ Sobel edge detection (JNI)
+- Native C++ Canny edge detection (JNI)
 - OpenGL ES 2.0 GPU renderer
 - RAW / EDGE mode toggle
 - Auto-hide HUD (FPS + processing time)
@@ -110,7 +110,7 @@ flowchart LR
 flowchart TD
     A[Camera2] --> B[ImageReader]
     B --> C[Byte&#91;&#93; Y]
-    C --> D[C++ Sobel Edge Detection]
+    C --> D[C++ Canny Edge Detection]
     D --> E[ByteBuffer Edges]
     E --> F[GLRenderer → GL_LUMINANCE]
     F --> G[Screen]
